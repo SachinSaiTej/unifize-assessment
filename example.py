@@ -132,6 +132,69 @@ async def main():
     print(f"Total discount: ₹{result2.original_price - result2.final_price}")
     print(f"Savings: {((result2.original_price - result2.final_price) / result2.original_price * 100):.1f}%")
     print("=" * 70)
+    print()
+    
+    # Scenario 5: Single Discount Mode (Best Discount Only)
+    print("=" * 70)
+    print("SCENARIO 5: SINGLE DISCOUNT MODE (Best Discount Only)")
+    print("=" * 70)
+    print()
+    
+    # Initialize service with stacking disabled
+    best_discount_service = DiscountService(
+        brand_strategy=get_brand_strategy(),
+        category_strategy=get_category_strategy(),
+        voucher_strategy=get_voucher_strategy(),
+        bank_strategy=get_bank_strategy(),
+        allow_discount_stacking=False,  # Only apply best discount
+    )
+    
+    print("With allow_discount_stacking=False, only the BEST discount is applied:")
+    print()
+    
+    # Test 1: Without voucher
+    print("Test 1: Brand (40%) vs Category (10%) vs Bank (10%)")
+    print("-" * 70)
+    result_best1 = await best_discount_service.calculate_cart_discounts(
+        cart_items=get_multiple_discount_scenario(),
+        customer=NEW_CUSTOMER,
+        payment_info=ICICI_CARD_PAYMENT,
+    )
+    print(f"Original Price: ₹{result_best1.original_price}")
+    print(f"Final Price:    ₹{result_best1.final_price}")
+    print(f"Total Savings:  ₹{result_best1.original_price - result_best1.final_price}")
+    print(f"Applied Discount:")
+    for name, amount in result_best1.applied_discounts.items():
+        print(f"  - {name}: ₹{amount}")
+    print(f"Message: {result_best1.message}")
+    print()
+    
+    # Test 2: With SUPER69 voucher
+    print("Test 2: Brand (40%) vs SUPER69 Voucher (69%)")
+    print("-" * 70)
+    result_best2 = await best_discount_service.calculate_cart_discounts(
+        cart_items=get_multiple_discount_scenario(),
+        customer=NEW_CUSTOMER,
+        voucher_code="SUPER69",
+    )
+    print(f"Original Price: ₹{result_best2.original_price}")
+    print(f"Final Price:    ₹{result_best2.final_price}")
+    print(f"Total Savings:  ₹{result_best2.original_price - result_best2.final_price}")
+    print(f"Applied Discount:")
+    for name, amount in result_best2.applied_discounts.items():
+        print(f"  - {name}: ₹{amount}")
+    print(f"Message: {result_best2.message}")
+    print()
+    
+    # Comparison
+    print("COMPARISON: Stacking vs Best Discount")
+    print("-" * 70)
+    print(f"Stacking Mode (Scenario 2):      ₹{result2.final_price} ({len(result2.applied_discounts)} discounts)")
+    print(f"Best Discount Mode (Test 1):     ₹{result_best1.final_price} ({len(result_best1.applied_discounts)} discount)")
+    print()
+    print("Stacking mode gives better deal when multiple discounts can combine!")
+    print("Best discount mode is simpler and easier to understand for customers.")
+    print("=" * 70)
 
 
 if __name__ == "__main__":

@@ -198,6 +198,52 @@ Applied Discounts:
 
 All 23 tests should pass when running `pytest`.
 
+## Usage
+
+### Discount Stacking Modes
+
+The service supports two modes controlled by the `allow_discount_stacking` parameter:
+
+#### 1. **Stacking Mode** (default: `allow_discount_stacking=True`)
+Applies all eligible discounts sequentially for maximum savings:
+
+```python
+service = DiscountService(
+    brand_strategy=get_brand_strategy(),
+    category_strategy=get_category_strategy(),
+    voucher_strategy=get_voucher_strategy(),
+    bank_strategy=get_bank_strategy(),
+    allow_discount_stacking=True,  # Default
+)
+
+# Result: Multiple discounts stacked
+# Brand (40%) → Category (10%) → Bank (10%)
+# ₹1000 → ₹486 (51.4% total savings)
+```
+
+#### 2. **Best Discount Mode** (`allow_discount_stacking=False`)
+Calculates all discounts independently and applies only the highest one:
+
+```python
+service = DiscountService(
+    brand_strategy=get_brand_strategy(),
+    category_strategy=get_category_strategy(),
+    voucher_strategy=get_voucher_strategy(),
+    bank_strategy=get_bank_strategy(),
+    allow_discount_stacking=False,  # Only best discount
+)
+
+# Result: Only the best single discount applied
+# Compares: Brand (40%), Category (10%), Bank (10%)
+# Applies: Brand (40%) as it's highest
+# ₹1000 → ₹600 (40% savings)
+```
+
+**When to use each mode:**
+- **Stacking Mode**: E-commerce platforms wanting to reward customers with maximum savings
+- **Best Discount Mode**: Simpler pricing, easier for customers to understand, better for business margins
+
+
 ## Assumptions & Decisions
 
 ### 1. **Discount Stacking Rules**
@@ -260,14 +306,16 @@ All 23 tests should pass when running `pytest`.
 
 ## Future Enhancements
 
-If extending beyond 3 hours, consider:
-1. **Database Integration**: PostgreSQL with SQLAlchemy
-2. **Caching**: Redis for frequently accessed discount rules
-3. **Admin Interface**: Manage discount rules dynamically
-4. **Analytics**: Track discount usage and effectiveness
-5. **A/B Testing**: Framework for testing discount strategies
-6. **Real-time Inventory**: Check stock before applying discounts
-7. **Scheduled Discounts**: Time-based discount activation
+1. **Single Discount Mode**: Add a feature flag (`allow_discount_stacking`) that when disabled, applies only the best single discount instead of stacking multiple discounts. The service would calculate all eligible discounts and automatically select the one offering maximum savings. This provides flexibility for different business models:
+   - `allow_discount_stacking=True` (current): Apply all eligible discounts sequentially (Brand → Category → Voucher → Bank)
+   - `allow_discount_stacking=False` (new): Calculate each discount independently and apply only the highest one
+2. **Database Integration**: PostgreSQL with SQLAlchemy
+3. **Caching**: Redis for frequently accessed discount rules
+4. **Admin Interface**: Manage discount rules dynamically
+5. **Analytics**: Track discount usage and effectiveness
+6. **A/B Testing**: Framework for testing discount strategies
+7. **Real-time Inventory**: Check stock before applying discounts
+8. **Scheduled Discounts**: Time-based discount activation
 
 ## Design Decisions Trade-offs
 
